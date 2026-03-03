@@ -1,10 +1,34 @@
 const searchForm = document.getElementById("search-form");
-const urlInput = document.getElementById("url-input");
+const queryInput = document.getElementById("query-input");
+const sourceTabsEl = document.getElementById("source-tabs");
+const queryLabelEl = document.getElementById("query-label");
+const resultsPanelEl = document.getElementById("results-panel");
 const resultsEl = document.getElementById("results");
 const outputPanelEl = document.getElementById("output-panel");
+const backToResultsBtn = document.getElementById("back-to-results");
 const outputEl = document.getElementById("output");
 
 let latestResults = [];
+let currentSourceId = "webpage";
+
+const SOURCE_CONFIG = {
+  webpage: {
+    label: "Webpage URL",
+    placeholder: "https://example.com/article"
+  },
+  book: {
+    label: "Book Search",
+    placeholder: "Book title, author, or ISBN"
+  },
+  article_journal: {
+    label: "Journal Article Search",
+    placeholder: "Article title, DOI, or author"
+  },
+  video: {
+    label: "Video Search",
+    placeholder: "Video title, channel, or URL"
+  }
+};
 
 function escapeHtml(value) {
   return value
@@ -31,6 +55,25 @@ function hideOutputPanel() {
 
 function showOutputPanel() {
   outputPanelEl.classList.remove("hidden");
+}
+
+function hideResultsPanel() {
+  resultsPanelEl.classList.add("hidden");
+}
+
+function showResultsPanel() {
+  resultsPanelEl.classList.remove("hidden");
+}
+
+function applySourceUi(sourceId) {
+  currentSourceId = sourceId;
+  const config = SOURCE_CONFIG[sourceId] || SOURCE_CONFIG.webpage;
+  queryLabelEl.textContent = config.label;
+  queryInput.placeholder = config.placeholder;
+  sourceTabsEl.querySelectorAll(".source-tab").forEach((btn) => {
+    const isActive = btn.getAttribute("data-source") === sourceId;
+    btn.classList.toggle("is-active", isActive);
+  });
 }
 
 function linkifyUrlsInHtml(html) {
@@ -85,28 +128,68 @@ function linkifyUrlsInHtml(html) {
   return container.innerHTML;
 }
 
+function copyRichHtmlLegacy(html) {
+  const container = document.createElement("div");
+  container.setAttribute("contenteditable", "true");
+  container.style.position = "fixed";
+  container.style.left = "-99999px";
+  container.style.top = "0";
+  container.style.opacity = "0";
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(container);
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  }
+
+  selection.removeAllRanges();
+  document.body.removeChild(container);
+  return copied;
+}
+
 async function copyNodeTextById(id, triggerButton) {
   const node = document.getElementById(id);
   if (!node) return;
 
-  const text = node.textContent?.trim() || "";
   const html = node.innerHTML?.trim() || "";
   const linkedHtml = linkifyUrlsInHtml(html);
   const clipboardHtml =
     id === "gdocs-reference-value" || id === "reference-value"
       ? `<div style="margin:0; line-height:200%;"><span style="display:block; padding-left:36pt; text-indent:-36pt;">${linkedHtml}</span></div>`
       : linkedHtml;
-  if (!text) return;
+  if (!clipboardHtml) return;
 
   try {
-    if (window.ClipboardItem && clipboardHtml) {
+    let copied = false;
+
+    if (
+      typeof ClipboardItem !== "undefined" &&
+      navigator.clipboard &&
+      typeof navigator.clipboard.write === "function"
+    ) {
       const item = new ClipboardItem({
-        "text/plain": new Blob([text], { type: "text/plain" }),
         "text/html": new Blob([clipboardHtml], { type: "text/html" })
       });
       await navigator.clipboard.write([item]);
-    } else {
-      await navigator.clipboard.writeText(text);
+      copied = true;
+    }
+
+    if (!copied) {
+      copied = copyRichHtmlLegacy(clipboardHtml);
+    }
+
+    if (!copied) {
+      throw new Error("Copy failed");
     }
 
     const original = triggerButton.textContent;
@@ -135,19 +218,20 @@ function renderResults(results) {
     return;
   }
 
+  showResultsPanel();
   resultsEl.classList.remove("empty");
   resultsEl.innerHTML = results
     .map((item, index) => {
       const md = item.metadata || {};
       const authors = Array.isArray(md.author) ? md.author.map(parseAuthor).join(", ") : "Unknown Author";
       const title = md.title || "(No title)";
-      const website = md.containerTitle || md.url || "";
+      const sourceText = md.containerTitle || md.publisher || md.url || "";
       const year = md.issued?.year || "n.d.";
       return `
         <article class="result-item">
           <h3>${escapeHtml(title)}</h3>
           <p><strong>Author(s):</strong> ${escapeHtml(authors)}</p>
-          <p><strong>Site:</strong> ${escapeHtml(website)}</p>
+          <p><strong>Source:</strong> ${escapeHtml(sourceText)}</p>
           <p><strong>Year:</strong> ${escapeHtml(String(year))}</p>
           <button type="button" data-index="${index}" class="generate-btn">Generate APA</button>
         </article>
@@ -159,11 +243,13 @@ function renderResults(results) {
 async function generateReferenceFromIndex(index) {
   const selected = latestResults[index];
   if (!selected?.metadata) {
+    hideResultsPanel();
     showOutputPanel();
     setOutputMessage("Selected result does not include metadata.");
     return;
   }
 
+  hideResultsPanel();
   showOutputPanel();
   setOutputMessage("Generating citation...");
 
@@ -218,17 +304,19 @@ async function generateReferenceFromIndex(index) {
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const url = urlInput.value.trim();
-  if (!url) return;
+  const query = queryInput.value.trim();
+  const sourceId = currentSourceId;
+  if (!query) return;
 
   setResultsMessage("Searching...");
+  showResultsPanel();
   hideOutputPanel();
 
   try {
     const response = await fetch("/api/mybib/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, sourceId: "webpage" })
+      body: JSON.stringify({ query, sourceId })
     });
     const data = await response.json();
 
@@ -261,3 +349,22 @@ outputEl.addEventListener("click", (event) => {
   if (!targetId) return;
   copyNodeTextById(targetId, btn);
 });
+
+sourceTabsEl.addEventListener("click", (event) => {
+  const btn = event.target.closest(".source-tab");
+  if (!btn) return;
+  const sourceId = btn.getAttribute("data-source");
+  if (!sourceId) return;
+  latestResults = [];
+  setResultsMessage("No results yet.");
+  showResultsPanel();
+  hideOutputPanel();
+  applySourceUi(sourceId);
+});
+
+backToResultsBtn.addEventListener("click", () => {
+  hideOutputPanel();
+  showResultsPanel();
+});
+
+applySourceUi(currentSourceId);

@@ -22,6 +22,7 @@ h3 {
 }
 
 .panel {
+  position: relative;
   background: #fff;
   border-radius: 10px;
   padding: 16px;
@@ -35,12 +36,39 @@ h3 {
   margin-top: 8px;
 }
 
-input[type="url"] {
+.source-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.source-tab {
+  background: #eef2ff;
+  color: #1e3a8a;
+  border: 1px solid #c7d2fe;
+  padding: 8px 12px;
+}
+
+.source-tab:hover {
+  background: #dbeafe;
+}
+
+.source-tab.is-active {
+  background: #0b5cff;
+  border-color: #0b5cff;
+  color: #fff;
+}
+
+input[type="text"],
+select {
   flex: 1;
   padding: 10px 12px;
   font-size: 15px;
   border: 1px solid #cdd5df;
   border-radius: 8px;
+  background: #fff;
 }
 
 button {
@@ -60,6 +88,33 @@ button:hover {
 .results,
 .output {
   min-height: 72px;
+}
+
+.back-btn {
+  position: static;
+  display: inline-block;
+  margin-bottom: 10px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 0;
+  line-height: 1;
+  font-size: 20px;
+  opacity: 0.8;
+  transition: color 140ms ease, opacity 140ms ease, transform 140ms ease;
+}
+
+.back-btn:hover {
+  background: transparent;
+  color: #334155;
+  opacity: 1;
+  transform: translateX(-1px);
+}
+
+.back-btn:focus-visible {
+  background: transparent;
+  color: #334155;
+  outline: none;
 }
 
 .hidden {
@@ -131,7 +186,7 @@ pre {
     flex-direction: column;
   }
 
-  button {
+  button:not(.source-tab):not(.back-btn) {
     width: 100%;
   }
 

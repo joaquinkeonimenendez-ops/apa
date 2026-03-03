@@ -1,13 +1,10 @@
 {
   "name": "apa-wrapper",
   "version": "1.0.0",
-  "description": "Internal MyBib APA wrapper for webpage URLs",
-  "main": "server.js",
+  "description": "Vercel-hostable MyBib APA wrapper for webpage URLs",
+  "main": "api/mybib/search.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.21.2"
+    "dev": "npx vercel dev"
   }
 }
