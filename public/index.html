@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>APA 7 for Google Docs</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>APA 7 for Google Docs</h1>
+      <p>Paste a webpage URL, select a result, then generate the APA citation and a Google Docs ready APA citation.</p>
+
+      <form id="search-form" class="panel">
+        <label for="url-input">Webpage URL</label>
+        <div class="row">
+          <input
+            id="url-input"
+            name="url"
+            type="url"
+            placeholder="https://example.com/article"
+            required
+          />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+
+      <section class="panel">
+        <h2>Search Results</h2>
+        <div id="results" class="results empty">No results yet.</div>
+      </section>
+
+      <section id="output-panel" class="panel hidden">
+        <h2>APA Output</h2>
+        <div id="output" class="output empty"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

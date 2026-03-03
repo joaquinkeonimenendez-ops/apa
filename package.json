@@ -1,0 +1,13 @@
+{
+  "name": "apa-wrapper",
+  "version": "1.0.0",
+  "description": "Internal MyBib APA wrapper for webpage URLs",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
