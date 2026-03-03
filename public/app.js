@@ -134,40 +134,29 @@ function showResultsPanel() {
 }
 
 function hideManualPanel() {
-  if (!manualPanelEl) return;
   manualPanelEl.classList.add("hidden");
 }
 
 function showManualPanel() {
-  if (!manualPanelEl) return;
   manualPanelEl.classList.remove("hidden");
 }
 
 function applySourceUi(sourceId) {
   currentSourceId = sourceId;
   const config = SOURCE_CONFIG[sourceId] || SOURCE_CONFIG.webpage;
-  if (queryLabelEl) {
-    queryLabelEl.textContent = config.label;
-  }
-  if (queryInput) {
-    queryInput.placeholder = config.placeholder;
-  }
-  if (manualTitleEl) {
-    manualTitleEl.textContent = config.manualTitle;
-  }
-  if (sourceTabsEl) {
-    sourceTabsEl.querySelectorAll(".source-tab").forEach((btn) => {
-      const isActive = btn.getAttribute("data-source") === sourceId;
-      btn.classList.toggle("is-active", isActive);
-    });
-  }
-  if (manualMode && manualFieldsEl) {
+  queryLabelEl.textContent = config.label;
+  queryInput.placeholder = config.placeholder;
+  manualTitleEl.textContent = config.manualTitle;
+  sourceTabsEl.querySelectorAll(".source-tab").forEach((btn) => {
+    const isActive = btn.getAttribute("data-source") === sourceId;
+    btn.classList.toggle("is-active", isActive);
+  });
+  if (manualMode) {
     renderManualFields(sourceId);
   }
 }
 
 function updateManualToggleButton() {
-  if (!manualToggleBtn) return;
   manualToggleBtn.textContent = manualMode ? "Back to search mode" : "Or enter manually";
 }
 
@@ -190,7 +179,6 @@ function syncPersonRemoveButtons(rowsEl) {
 }
 
 function renderManualFields(sourceId) {
-  if (!manualFieldsEl) return;
   const fields = MANUAL_FIELD_CONFIG[sourceId] || [];
   manualFieldsEl.innerHTML = fields
     .map((field) => {
@@ -649,7 +637,6 @@ function renderReferenceOutput(result) {
 }
 
 async function generateManualReference() {
-  if (!manualFormEl) return;
   const formData = new FormData(manualFormEl);
   const metadata = buildManualMetadata(currentSourceId, formData);
 
@@ -681,8 +668,7 @@ async function generateManualReference() {
   }
 }
 
-if (searchForm) {
-  searchForm.addEventListener("submit", async (event) => {
+searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const query = queryInput.value.trim();
@@ -715,10 +701,8 @@ if (searchForm) {
     setResultsMessage(error.message || "Unable to search for URL.");
   }
 });
-}
 
-if (resultsEl) {
-  resultsEl.addEventListener("click", (event) => {
+resultsEl.addEventListener("click", (event) => {
   const btn = event.target.closest(".generate-btn");
   if (!btn) return;
 
@@ -726,10 +710,8 @@ if (resultsEl) {
   if (Number.isNaN(index)) return;
   generateReferenceFromIndex(index);
 });
-}
 
-if (outputEl) {
-  outputEl.addEventListener("click", (event) => {
+outputEl.addEventListener("click", (event) => {
   const btn = event.target.closest(".copy-btn");
   if (!btn) return;
 
@@ -737,10 +719,8 @@ if (outputEl) {
   if (!targetId) return;
   copyNodeTextById(targetId, btn);
 });
-}
 
-if (outputEl) {
-  outputEl.addEventListener("copy", (event) => {
+outputEl.addEventListener("copy", (event) => {
   const surface = getSelectedCitationSurface();
   if (!surface) return;
 
@@ -755,37 +735,33 @@ if (outputEl) {
     }
   }
 });
-}
 
-if (manualFieldsEl) {
-  manualFieldsEl.addEventListener("click", (event) => {
-    const addBtn = event.target.closest("[data-person-add]");
-    if (addBtn) {
-      const key = addBtn.getAttribute("data-person-add");
-      if (!key) return;
-      const rowsEl = manualFieldsEl.querySelector(`.person-rows[data-person-key="${key}"]`);
-      if (!rowsEl) return;
-      rowsEl.insertAdjacentHTML("beforeend", buildPersonRowHtml(key));
-      syncPersonRemoveButtons(rowsEl);
-      return;
-    }
+manualFieldsEl.addEventListener("click", (event) => {
+  const addBtn = event.target.closest("[data-person-add]");
+  if (addBtn) {
+    const key = addBtn.getAttribute("data-person-add");
+    if (!key) return;
+    const rowsEl = manualFieldsEl.querySelector(`.person-rows[data-person-key="${key}"]`);
+    if (!rowsEl) return;
+    rowsEl.insertAdjacentHTML("beforeend", buildPersonRowHtml(key));
+    syncPersonRemoveButtons(rowsEl);
+    return;
+  }
 
-    const removeBtn = event.target.closest("[data-person-remove]");
-    if (removeBtn) {
-      const key = removeBtn.getAttribute("data-person-remove");
-      if (!key) return;
-      const rowsEl = manualFieldsEl.querySelector(`.person-rows[data-person-key="${key}"]`);
-      const row = removeBtn.closest(".person-row");
-      if (!rowsEl || !row) return;
-      if (rowsEl.querySelectorAll(".person-row").length <= 1) return;
-      row.remove();
-      syncPersonRemoveButtons(rowsEl);
-    }
-  });
-}
+  const removeBtn = event.target.closest("[data-person-remove]");
+  if (removeBtn) {
+    const key = removeBtn.getAttribute("data-person-remove");
+    if (!key) return;
+    const rowsEl = manualFieldsEl.querySelector(`.person-rows[data-person-key="${key}"]`);
+    const row = removeBtn.closest(".person-row");
+    if (!rowsEl || !row) return;
+    if (rowsEl.querySelectorAll(".person-row").length <= 1) return;
+    row.remove();
+    syncPersonRemoveButtons(rowsEl);
+  }
+});
 
-if (sourceTabsEl) {
-  sourceTabsEl.addEventListener("click", (event) => {
+sourceTabsEl.addEventListener("click", (event) => {
   const btn = event.target.closest(".source-tab");
   if (!btn) return;
   const sourceId = btn.getAttribute("data-source");
@@ -802,10 +778,8 @@ if (sourceTabsEl) {
   }
   applySourceUi(sourceId);
 });
-}
 
-if (backToResultsBtn) {
-  backToResultsBtn.addEventListener("click", () => {
+backToResultsBtn.addEventListener("click", () => {
   hideOutputPanel();
   if (lastViewBeforeOutput === "manual") {
     showManualPanel();
@@ -815,32 +789,27 @@ if (backToResultsBtn) {
     showResultsPanel();
   }
 });
-}
 
-if (manualToggleBtn) {
-  manualToggleBtn.addEventListener("click", () => {
-    manualMode = !manualMode;
-    updateManualToggleButton();
+manualToggleBtn.addEventListener("click", () => {
+  manualMode = !manualMode;
+  updateManualToggleButton();
 
-    if (manualMode) {
-      renderManualFields(currentSourceId);
-      hideResultsPanel();
-      hideOutputPanel();
-      showManualPanel();
-    } else {
-      hideManualPanel();
-      hideOutputPanel();
-      showResultsPanel();
-    }
-  });
-}
+  if (manualMode) {
+    renderManualFields(currentSourceId);
+    hideResultsPanel();
+    hideOutputPanel();
+    showManualPanel();
+  } else {
+    hideManualPanel();
+    hideOutputPanel();
+    showResultsPanel();
+  }
+});
 
-if (manualFormEl) {
-  manualFormEl.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await generateManualReference();
-  });
-}
+manualFormEl.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await generateManualReference();
+});
 
 applySourceUi(currentSourceId);
 updateManualToggleButton();
