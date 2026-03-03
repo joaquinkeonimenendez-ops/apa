@@ -6,6 +6,7 @@ Small internal web app that:
 2. Calls MyBib search API to get candidate records.
 3. Lets you click a result.
 4. Calls MyBib reference API to return APA 7 formatted output.
+5. Output is reformatted to properly paste into google docs which is not done on official MyBib
 
 ## Deploy (Vercel)
 
