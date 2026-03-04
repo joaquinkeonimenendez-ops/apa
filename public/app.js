@@ -625,24 +625,20 @@ async function generateReferenceFromIndex(index) {
 
 function renderReferenceOutput(result) {
   const reference = result.formattedReferenceStr || "No formatted reference returned.";
-  const inText = result.formattedInTextCitationStr || "No in-text citation returned.";
   const referenceLinked = linkifyUrlsInHtml(reference);
-  const inTextLinked = linkifyUrlsInHtml(inText);
 
   outputEl.classList.remove("empty");
   outputEl.innerHTML = `
     <div class="citation-block">
       <h3>Google Docs Ready APA Citation</h3>
-      <div id="gdocs-reference-value" class="reference-preview citation-value citation-surface">${referenceLinked}</div>
+      <div
+        class="citation-copy-box"
+        style="border:2px dashed #94a3b8;border-radius:10px;background:#fff;padding:10px 12px;margin-bottom:12px;box-shadow:0 2px 8px rgba(15,23,42,.08);"
+      >
+        <div id="gdocs-reference-value" class="reference-preview citation-value citation-surface">${referenceLinked}</div>
+      </div>
       <div class="citation-actions">
         <button type="button" class="copy-btn" data-copy-target="gdocs-reference-value">Copy</button>
-      </div>
-    </div>
-    <div class="citation-block">
-      <h3>In-text Citation</h3>
-      <div id="intext-value" class="citation-value citation-surface">${inTextLinked}</div>
-      <div class="citation-actions">
-        <button type="button" class="copy-btn" data-copy-target="intext-value">Copy</button>
       </div>
     </div>
   `;
