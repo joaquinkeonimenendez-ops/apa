@@ -633,7 +633,7 @@ function renderReferenceOutput(result) {
       <h3>Google Docs Ready APA Citation</h3>
       <div
         class="citation-copy-box"
-        style="border:2px solid #d1d5db; border-radius:10px; background:#fff; padding:10px 12px; margin-bottom:12px; box-shadow:0 2px 8px rgba(15,23,42,.08);"
+        style="border:2px solid #d1d5db; border-radius:10px; background:#fff; padding:10px 12px; margin-bottom:12px;"
       >
         <div id="gdocs-reference-value" class="reference-preview citation-value citation-surface">${referenceLinked}</div>
       </div>
